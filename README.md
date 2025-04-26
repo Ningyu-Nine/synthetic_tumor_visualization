@@ -14,7 +14,7 @@ A tool for visualizing synthetic tumor growth process in medical imaging, specif
 ## Directory Structure
 
 ```
-tumor_visualization/
+Synthetic-Tumor_visualization/
 ├── Tumor_Synthesis/
 │   ├── visualization/
 │   │   └── 3Dgif.py         # 3D visualization and GIF generation
@@ -92,10 +92,3 @@ python 3Dgif.py
 
 This is a research tool for synthetic tumor visualization. Feel free to submit issues or pull requests.
 
-## License
-
-[Add your license information here]
-
-## Contact
-
-[Add your contact information here]
