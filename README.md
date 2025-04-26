@@ -1,1 +1,101 @@
-# synthetic_tumor_visualization
+# Synthetic Tumor Visualization
+
+A tool for visualizing synthetic tumor growth process in medical imaging, specifically designed for pancreatic tumor visualization.
+
+## Features
+
+- Tumor growth simulation with adjustable parameters
+- 3D visualization of the tumor growth process
+- Support for multiple anatomical structures visualization
+- Customizable viewing angles and animation settings
+- Both forward (growth) and reverse (shrinkage) animation generation
+- Transparency support for better structure visualization
+
+## Directory Structure
+
+```
+tumor_visualization/
+├── Tumor_Synthesis/
+│   ├── visualization/
+│   │   └── 3Dgif.py         # 3D visualization and GIF generation
+│   ├── utils_visual.py      # Utility functions for tumor generation
+│   └── visualize.py         # Main script for tumor synthesis
+├── image/                   # Input CT images
+├── label/                   # Input segmentation labels
+└── output/
+    ├── growth_process/
+    │   ├── images/         # Generated tumor images
+    │   └── labels/         # Generated tumor labels
+    └── 3Dgif/             # Output GIF animations
+```
+
+## Prerequisites
+
+- Python 3.7+
+- PyTorch
+- VTK
+- SimpleITK
+- NumPy
+- OpenCV
+- PIL
+
+## Installation
+
+```bash
+pip install torch vtk SimpleITK numpy opencv-python pillow
+```
+
+## Usage
+
+1. **Generate Synthetic Tumor Growth Process**:
+```bash
+python visualize.py
+```
+- Enter the total number of growth steps (recommended: 5-70)
+- The program will generate intermediate results at regular intervals
+
+2. **Create 3D Visualization GIF**:
+```bash
+python 3Dgif.py
+```
+- Select structures to visualize (tumor, vessels, pancreas, etc.)
+- Choose viewing angles
+- Select animation direction (growth or shrinkage)
+
+## Visualization Options
+
+### Anatomical Structures
+- PDAC lesion (Red)
+- Veins (Blue)
+- Arteries (Pink)
+- Pancreatic parenchyma (Green)
+- Pancreatic duct (Yellow)
+- Bile duct (Cyan)
+
+### Transparency Settings
+- Tumor: 100% opacity
+- Pancreas: 40% opacity
+- Vessels and ducts: 80% opacity
+
+### Camera Views
+- Horizontal angle (Azimuth): -180° to 180°
+- Vertical angle (Elevation): -90° to 90°
+- Customizable view names
+
+## Output Files
+
+- Intermediate tumor growth states (NIfTI format)
+- 3D visualization animations (GIF format)
+- Both image and label files for each growth step
+
+## Contributing
+
+This is a research tool for synthetic tumor visualization. Feel free to submit issues or pull requests.
+
+## License
+
+[Add your license information here]
+
+## Contact
+
+[Add your contact information here]
