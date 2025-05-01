@@ -14,7 +14,7 @@ A tool for visualizing synthetic tumor growth process in medical imaging, specif
 ## Directory Structure
 
 ```
-Synthetic-Tumor_visualization/
+tumor_visualization/
 ├── Tumor_Synthesis/
 │   ├── visualization/
 │   │   └── 3Dgif.py         # 3D visualization and GIF generation
@@ -62,6 +62,39 @@ python 3Dgif.py
 - Choose viewing angles
 - Select animation direction (growth or shrinkage)
 
+## Using with AbdomenAtlasF Dataset
+
+This tool also supports visualization of the AbdomenAtlasF dataset which has separate segmentation files for different organs.
+
+### Quick Guide for AbdomenAtlasF:
+
+1. **Merge segmentation files**:
+```bash
+python merge_segmentations.py
+```
+
+2. **Generate tumor growth process** (if needed):
+```bash
+python visualize.py
+```
+
+3. **Create 3D visualization**:
+```bash
+python 3Dgif.py
+```
+
+### Label Mapping
+When using AbdomenAtlasF dataset, the following label mapping is used:
+- 1: PDAC lesion (Red)
+- 2: Veins (Blue)
+- 3: Arteries (Pink)
+- 4: Pancreas (Green)
+- 5: Pancreatic duct (Yellow)
+- 6: Bile duct (Cyan)
+- 7: Pancreatic cyst (Light Purple)
+- 8: Pancreatic NET (Orange)
+- 9: Postcava (Dark Purple)
+
 ## Visualization Options
 
 ### Anatomical Structures
@@ -91,4 +124,3 @@ python 3Dgif.py
 ## Contributing
 
 This is a research tool for synthetic tumor visualization. Feel free to submit issues or pull requests.
-
