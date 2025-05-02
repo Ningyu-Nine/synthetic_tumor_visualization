@@ -30,7 +30,7 @@ def get_predefined_texture(mask_shape, sigma_a, sigma_b):
     u_0 = np.random.uniform(0.5, 0.55)
     threshold_mask = b > 0.12    # this is for calculte the mean_0.2(b2)
     beta = u_0 / (np.sum(b * threshold_mask) / threshold_mask.sum())
-    Bj = np.clip(beta*b, 0, 1) # 目前是0-1区间
+    Bj = np.clip(beta*b, 0, 1) # Currently in the range of 0-1
 
     return Bj
 
@@ -42,10 +42,10 @@ def grow_tumor(current_state, density_organ_state, kernel_size, steps, all_state
         current_state = update_cellular(current_state, density_organ_state, (kernel_size[0], kernel_size[1], kernel_size[2]), (
             organ_hu_lowerbound, organ_standard_val, outrange_standard_val, threshold), death_flag).clamp(max=(outrange_standard_val + 2))
         
-        # 每步保存当前状态
+        # Save current state at each step
         all_states.append(current_state.cpu().numpy().copy())
     
-    #When tumor larger than 2cm process Death: if tumor surpasses the threshold, it may die.
+    # When tumor larger than 2cm process Death: if tumor surpasses the threshold, it may die.
     death = np.random.randint(0, 2) 
 
     if death == 0:
@@ -83,16 +83,9 @@ def grow_tumor(current_state, density_organ_state, kernel_size, steps, all_state
                 current_state = update_cellular(current_state, density_organ_state, (kernel_size[0], kernel_size[1], kernel_size[2]), (
                     organ_hu_lowerbound, organ_standard_val, outrange_standard_val, threshold), death_flag).clamp(max=(outrange_standard_val + 2))
 
-        
-
-
-    
-
     state = current_state.cpu().numpy().copy()
     state = np.array(state)
    
-    
-    
     # postprocess
     if death_flag == False:
         state[state >= outrange_standard_val] = 0
@@ -300,28 +293,23 @@ def map_to_CT_value(img, tumor, texture, density_organ_map, threshold, outrange_
 
 
 def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, organ_hu_lowerbound, outrange_standard_val, threshold, organ_name, start_point, args, return_intermediate=False):
-    
-    # 删除这行代码，不再随机化steps
-    # steps = np.random.randint(5, steps)
-    
-    # load organ and quantify
-    # get the organ region
+    # Load organ and quantify
+    # Get the organ region
     organ_region = np.where(np.isin(mask, Organ_List[organ_name]))
     min_x, max_x = np.min(organ_region[0]), np.max(organ_region[0])
     min_y, max_y = np.min(organ_region[1]), np.max(organ_region[1])
     min_z, max_z = np.min(organ_region[2]), np.max(organ_region[2])
 
+    # Randomly select a start point
 
-    # random select a start point
-    
-    # crop the organ region
+    # Crop the organ region
     cropped_organ_region = mask[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1]
     cropped_img = img[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1].copy()
 
     x_length, y_length, z_length = max_x - min_x + 1, max_y - min_y + 1, max_z - min_z + 1
 
     if start_point == (0, 0, 0):
-        start_x = random.randint(0, texture.shape[0] - x_length - 1) # random select the start point, -1 is to avoid boundary check
+        start_x = random.randint(0, texture.shape[0] - x_length - 1) # Randomly select the start point, -1 is to avoid boundary check
         start_y = random.randint(0, texture.shape[1] - y_length - 1) 
         start_z = random.randint(0, texture.shape[2] - z_length - 1) 
     else:
@@ -331,7 +319,6 @@ def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, o
     
     cropped_texture = texture[start_x:start_x+x_length, start_y:start_y+y_length, start_z:start_z+z_length]
 
-    
     # Quantify the density of the organ
     select_organ_region = np.isin(cropped_organ_region, Organ_List[organ_name])
     processed_organ_region = cropped_img.copy()
@@ -339,22 +326,21 @@ def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, o
     processed_organ_region[processed_organ_region >
                         outrange_standard_val] = outrange_standard_val
 
-
     # Quantify the density of the organ
     processed_organ_region, density_organ_map = Quantify(processed_organ_region, organ_hu_lowerbound, organ_standard_val, outrange_standard_val)
 
-    # initialize state maps
+    # Initialize state maps
     current_state = torch.tensor(
         processed_organ_region, dtype=torch.int32).cuda(args.gpu)
     density_organ_state = torch.tensor(
         density_organ_map, dtype=torch.int32).cuda(args.gpu)
-    # sample the initial tumor number
+    # Sample the initial tumor number
     try_time = 0
     try_max = np.random.randint(1, 10)
     core_point = []
     while try_time < try_max:
         try_time += 1
-        # select point in organ region
+        # Select point in organ region
         matching_indices = np.argwhere(
             processed_organ_region == organ_standard_val)
         if matching_indices.size > 0:
@@ -363,7 +349,7 @@ def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, o
             large = np.random.randint(0,3)
             idx_x, idx_y, idx_z = start_point
             core_point.append(start_point)
-            processed_organ_region[idx_x, idx_y, idx_z] = threshold/2  # start point initialize
+            processed_organ_region[idx_x, idx_y, idx_z] = threshold/2  # Start point initialize
             current_state[idx_x, idx_y, idx_z] = threshold/2
             if large == 0:
                 num_expend = np.random.randint(3,10)
@@ -380,56 +366,54 @@ def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, o
                     except:
                         pass
                         
-        
-        
-        current_state[idx_x, idx_y, idx_z] = threshold/2  # start point initialize
+        current_state[idx_x, idx_y, idx_z] = threshold/2  # Start point initialize
 
-    all_states = []  # states of each step
+    all_states = []  # States of each step
 
-    # simulate tumor growth
+    # Simulate tumor growth
     tumor_out, death_flag = grow_tumor(current_state, density_organ_state, kernel_size, steps, all_states,
                         organ_hu_lowerbound, organ_standard_val, outrange_standard_val, threshold, density_organ_map, core_point, organ_name, args)
 
-    # map to CT value
+    # Map to CT value
 
     tumor_out[cropped_organ_region==0] = 0
 
     img_out = map_to_CT_value(cropped_img, tumor_out, cropped_texture, density_organ_map, threshold, outrange_standard_val, organ_hu_lowerbound, organ_standard_val, start_point, death_flag, organ_name)
 
-    # save the result
+    # Save the result
     img[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1] = img_out
 
     mask_tumor = np.zeros_like(mask)
     mask_tumor[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1] = tumor_out
-    mask_tumor[mask_tumor > 0] = 1  # 将肿瘤区域标记为1
+    mask_tumor[mask_tumor > 0] = 1  # Mark tumor region as 1
     mask_tumor[mask==0] = 0
     
-    # 修改这里的标签合并逻辑
-    mask_out = mask.copy()  # 保留原始标签
-    # 将肿瘤区域标记为1，不影响其他标签
+    # Modify the label merging logic here
+    mask_out = mask.copy()  # Keep the original labels
+    # Mark tumor region as 1, do not affect other labels
     mask_out[mask_tumor == 1] = 1
     
     if return_intermediate:
-        # 准备中间状态的图像和掩码
+        # Prepare intermediate images and masks
         intermediate_imgs = []
         intermediate_masks = []
         
-        # 处理每一个保存的中间状态
+        # Process each saved intermediate state
         for state in all_states:
-            # 复制中间状态进行处理
+            # Copy intermediate state for processing
             temp_state = state.copy()
             
-            # 后处理（与grow_tumor函数中类似的操作）
+            # Postprocess (similar to grow_tumor function)
             if not death_flag:
                 temp_state[temp_state >= outrange_standard_val] = 0
                 temp_state[temp_state >= threshold] = threshold
             
-            # 创建临时肿瘤掩码
+            # Create temporary tumor mask
             temp_tumor = np.zeros_like(cropped_organ_region)
             temp_tumor[select_organ_region] = temp_state[select_organ_region]
             temp_tumor[cropped_organ_region == 0] = 0
             
-            # 映射到CT值
+            # Map to CT value
             temp_img_out = map_to_CT_value(
                 cropped_img.copy(), 
                 temp_tumor, 
@@ -444,27 +428,24 @@ def generate_tumor(img, mask, texture, steps, kernel_size, organ_standard_val, o
                 organ_name
             )
             
-            # 创建完整的中间图像
+            # Create full intermediate image
             temp_full_img = img.copy()
             temp_full_img[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1] = temp_img_out
             
-            # 创建中间掩码
+            # Create intermediate mask
             temp_mask_tumor = np.zeros_like(mask)
             temp_mask_tumor[min_x:max_x+1, min_y:max_y+1, min_z:max_z+1] = temp_tumor
-            temp_mask_tumor[temp_mask_tumor > 0] = 1  # 将肿瘤区域标记为1
+            temp_mask_tumor[temp_mask_tumor > 0] = 1  # Mark tumor region as 1
             temp_mask_tumor[mask == 0] = 0
             
             temp_mask_out = mask.copy()
             temp_mask_out[temp_mask_tumor == 1] = 1
             
-            # 添加到结果列表
+            # Add to result list
             intermediate_imgs.append(temp_full_img)
             intermediate_masks.append(temp_mask_out)
         
         return img, mask_out, intermediate_imgs, intermediate_masks
     
     return img, mask_out
-
-
-
 
