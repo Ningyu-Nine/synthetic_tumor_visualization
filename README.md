@@ -94,6 +94,7 @@ When using AbdomenAtlasF dataset, the following label mapping is used:
 - 7: Pancreatic cyst (Light Purple)
 - 8: Pancreatic NET (Orange)
 - 9: Postcava (Dark Purple)
+- 10: Superior Mesenteric Artery (Gold)
 
 ## Visualization Options
 
@@ -104,16 +105,20 @@ When using AbdomenAtlasF dataset, the following label mapping is used:
 - Pancreatic parenchyma (Green)
 - Pancreatic duct (Yellow)
 - Bile duct (Cyan)
+- Pancreatic cyst (Light Purple)
+- Pancreatic NET (Orange)
+- Postcava (Dark Purple)
+- Superior Mesenteric Artery (Gold)
 
 ### Transparency Settings
-- Tumor: 100% opacity
-- Pancreas: 40% opacity
-- Vessels and ducts: 80% opacity
-
-### Camera Views
-- Horizontal angle (Azimuth): -180° to 180°
-- Vertical angle (Elevation): -90° to 90°
-- Customizable view names
+- Tumor (PDAC): 100% opacity
+- Pancreatic parenchyma: 20% opacity
+- Pancreatic duct: 90% opacity
+- Vessels and bile duct: 80% opacity
+- Pancreatic cyst: 70% opacity
+- Pancreatic NET: 90% opacity
+- Postcava: 80% opacity
+- Superior Mesenteric Artery: 100% opacity
 
 ## Output Files
 
@@ -123,4 +128,4 @@ When using AbdomenAtlasF dataset, the following label mapping is used:
 
 ## Contributing
 
-This is a research tool for synthetic tumor visualization. Feel free to submit issues or pull requests.
+This is a research tool for synthetic tumor visualization. 
