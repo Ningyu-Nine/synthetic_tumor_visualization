@@ -17,12 +17,13 @@ def get_label_properties():
         1: {"name": "PDAC_lesion", "desc": "Pancreatic Ductal Adenocarcinoma", "color": (1.0, 0.0, 0.0), "opacity": 1.0},    # Red
         2: {"name": "Veins", "desc": "Veins", "color": (0.0, 0.0, 1.0), "opacity": 0.8},                                      # Blue
         3: {"name": "Arteries", "desc": "Arteries", "color": (1.0, 0.4, 0.4), "opacity": 0.8},                                # Pink
-        4: {"name": "pancreas", "desc": "Pancreatic Parenchyma", "color": (0.2, 0.8, 0.2), "opacity": 0.4},                   # Green
-        5: {"name": "pancreatic_duct", "desc": "Pancreatic Duct", "color": (1.0, 1.0, 0.0), "opacity": 0.8},                  # Yellow
+        4: {"name": "pancreas", "desc": "Pancreatic Parenchyma", "color": (0.2, 0.8, 0.2), "opacity": 0.2},                   # Green, 更透明
+        5: {"name": "pancreatic_duct", "desc": "Pancreatic Duct", "color": (1.0, 1.0, 0.0), "opacity": 0.9},                  # Yellow, 更不透明
         6: {"name": "bile_duct", "desc": "Bile Duct", "color": (0.0, 1.0, 1.0), "opacity": 0.8},                              # Cyan
         7: {"name": "pancreatic_cyst", "desc": "Pancreatic Cyst", "color": (0.8, 0.6, 1.0), "opacity": 0.7},                  # Light Purple
         8: {"name": "pancreatic_pnet", "desc": "Pancreatic Neuroendocrine Tumor", "color": (1.0, 0.6, 0.2), "opacity": 0.9},  # Orange
-        9: {"name": "postcava", "desc": "Postcava", "color": (0.4, 0.0, 0.8), "opacity": 0.8}                                 # Dark Purple
+        9: {"name": "postcava", "desc": "Postcava", "color": (0.4, 0.0, 0.8), "opacity": 0.8},                                 # Dark Purple
+        10: {"name": "superior_mesenteric_artery", "desc": "Superior Mesenteric Artery", "color": (1.0, 0.8, 0.0), "opacity": 1.0}  # Gold
     }
 
 def show_available_labels(unique_labels):
@@ -366,8 +367,8 @@ def get_user_view():
 
 def main():
     # Update base path for NII files
-    nii_base_dir = "E:\zhuomian\Synthetic_Tumor_visualization\labels"
-    output_dir = "E:\zhuomian\Synthetic_Tumor_visualization/3Dgif"
+    nii_base_dir = "/opt/data/private/wny/Synthetic_Tumor_visualization/output/growth_process/labels"
+    output_dir = "/opt/data/private/wny/Synthetic_Tumor_visualization/output/3Dgif"
     os.makedirs(output_dir, exist_ok=True)
 
     print(f"\nReading tumor growth steps from directory: {nii_base_dir}")
