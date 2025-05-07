@@ -5,29 +5,29 @@ import SimpleITK as sitk
 
 def merge_segmentations(input_dir, output_label_path, output_image_path):
     """
-    Merge multiple individual NII segmentation files into a unified label file.
+    Merge multiple separate NII segmentation files into a unified label file
     
     Args:
-        input_dir: Directory containing individual organ segmentation NII files
+        input_dir: Directory containing organ segmentation NII files
         output_label_path: Path to save the merged label file
         output_image_path: Path to save the CT image file
     """
     # Define segmentation files and corresponding label values
     segmentation_map = {
-        "pancreatic_pdac.nii.gz": 1,     # PDAC lesion (red)
-        "veins.nii.gz": 2,               # Veins (blue)
-        "aorta.nii.gz": 3,               # Arteries - aorta (pink)
-        "celiac_aa.nii.gz": 3,           # Arteries - celiac artery (pink)
-        "superior_mesenteric_artery.nii.gz": 3,  # Arteries - superior mesenteric artery (pink)
-        "pancreas.nii.gz": 4,            # Pancreas (green)
-        "pancreatic_duct.nii.gz": 5,     # Pancreatic duct (yellow)
-        "common_bile_duct.nii.gz": 6,    # Bile duct (cyan)
-        "pancreatic_cyst.nii.gz": 7,     # Pancreatic cyst (new label)
-        "pancreatic_pnet.nii.gz": 8,     # Pancreatic pnet (new label)
-        "postcava.nii.gz": 9             # Postcava (new label)
+        "pancreatic_pdac.nii.gz": 1,     # PDAC lesion (Red)
+        "veins.nii.gz": 2,               # Veins (Blue)
+        "aorta.nii.gz": 3,               # Arteries - Aorta (Pink)
+        "celiac_aa.nii.gz": 3,           # Arteries - Celiac artery (Pink)
+        "superior_mesenteric_artery.nii.gz": 10,  # Superior mesenteric artery (Gold) - Separate display
+        "pancreas.nii.gz": 4,            # Pancreas (Green)
+        "pancreatic_duct.nii.gz": 5,     # Pancreatic duct (Yellow)
+        "common_bile_duct.nii.gz": 6,    # Bile duct (Cyan)
+        "pancreatic_cyst.nii.gz": 7,     # Pancreatic cyst
+        "pancreatic_pnet.nii.gz": 8,     # Pancreatic neuroendocrine tumor
+        "postcava.nii.gz": 9             # Postcava
     }
     
-    # Get the target CT image path
+    # Get target CT image path
     ct_path = os.path.join(os.path.dirname(input_dir), "ct.nii.gz")
     
     # Create output directories
@@ -42,8 +42,8 @@ def merge_segmentations(input_dir, output_label_path, output_image_path):
     print(f"Copying CT image to: {output_image_path}")
     shutil.copy2(ct_path, output_image_path)
     
-    # Create blank label image, same size as CT image
-    print("Creating blank label image")
+    # Create empty label image with same size as CT image
+    print("Creating empty label image")
     label_array = np.zeros(sitk.GetArrayFromImage(ct_image).shape, dtype=np.uint8)
     
     # Process each segmentation file
@@ -52,13 +52,13 @@ def merge_segmentations(input_dir, output_label_path, output_image_path):
         seg_path = os.path.join(input_dir, seg_file)
         if os.path.exists(seg_path):
             seg_files_found.append(seg_file)
-            print(f"Processing {seg_file} (label value: {label_value})")
+            print(f"Processing {seg_file} (Label value: {label_value})")
             
             # Read segmentation data
             seg_image = sitk.ReadImage(seg_path)
             seg_array = sitk.GetArrayFromImage(seg_image)
             
-            # Set nonzero values to the corresponding label value
+            # Set non-zero values to corresponding label value
             label_array[seg_array > 0] = label_value
         else:
             print(f"Segmentation file not found: {seg_path}")
@@ -72,7 +72,7 @@ def merge_segmentations(input_dir, output_label_path, output_image_path):
     # Save merged label image
     print(f"Saving merged label file to: {output_label_path}")
     sitk.WriteImage(merged_label_image, output_label_path)
-    print("Done!")
+    print("Complete!")
 
 def main():
     # Input and output paths
@@ -86,19 +86,20 @@ def main():
     # Merge segmentations
     merge_segmentations(input_seg_dir, output_label_path, output_image_path)
     
-    # Show label mapping for 3Dgif.py
-    print("\nLabel mapping for 3Dgif.py:")
-    print("1: PDAC lesion (red)")
-    print("2: Veins (blue)")
-    print("3: Arteries (pink)")
-    print("4: Pancreas parenchyma (green)")
-    print("5: Pancreatic duct (yellow)")
-    print("6: Bile duct (cyan)")
-    print("7: Pancreatic cyst (new)")
-    print("8: Pancreatic pnet (new)")
-    print("9: Postcava (new)")
+    # Show available label mapping for 3Dgif.py
+    print("\nAvailable label mapping for 3Dgif.py:")
+    print("1: PDAC lesion (Red)")
+    print("2: Veins (Blue)")
+    print("3: Arteries (Pink)")
+    print("4: Pancreas parenchyma (Green)")
+    print("5: Pancreatic duct (Yellow)")
+    print("6: Bile duct (Cyan)")
+    print("7: Pancreatic cyst")
+    print("8: Pancreatic pnet")
+    print("9: Postcava")
+    print("10: Superior mesenteric artery (Gold)")
     
-    print("\nYou can now run 3Dgif.py to visualize the merged labels.")
+    print("\nNow you can run 3Dgif.py to visualize the merged labels")
 
 if __name__ == "__main__":
     main()
