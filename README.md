@@ -333,19 +333,3 @@ threshold = 10               # Growth threshold
 steps = 30                   # Growth steps
 ```
 
-## Troubleshooting
-
-**Path Issues:**
-- Ensure dataset follows the expected directory structure
-- Use absolute paths if relative paths cause issues
-- Check file permissions for output directories
-
-**Memory Issues:**
-- Reduce `--steps` parameter for large datasets
-- Use smaller `--save-interval` to reduce memory usage
-- Close other applications when processing large cases
-
-**GPU Issues:**
-- Use `--gpu -1` to force CPU mode
-- Check CUDA installation if GPU is not detected
-- Monitor GPU memory usage during processing
