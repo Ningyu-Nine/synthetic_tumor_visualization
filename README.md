@@ -16,8 +16,8 @@ A comprehensive tool for synthesizing and visualizing tumor growth process in me
 ```
 1. merge_segmentations.py → Merge individual organ segmentations
 2. visualize.py → Generate tumor growth process 
-3. 3Dgif.py → Create 3D mesh animations
-4. tumor_gross2D_gif.py → Create 2D slice animations
+3. visualization/3Dgif.py → Create 3D mesh animations
+4. visualization/tumor_gross2D_gif.py → Create 2D slice animations
 ```
 
 ## Directory Structure
@@ -35,8 +35,13 @@ Synthetic_Tumor_visualization/
 ├── subset_AbdomenAtlasF/         # Input dataset
 ├── output/
 │   ├── growth_process/           # Generated tumor steps
+│   │   └── {case_id}/
+│   │       ├── images/           # CT images with tumor
+│   │       └── labels/           # Label masks
 │   ├── 3Dgif/                   # 3D animations
+│   │   └── {case_id}/
 │   └── gifs/                    # 2D animations
+│       └── {case_id}/
 └── README.md
 ```
 
@@ -113,59 +118,56 @@ BDMAP_A0001000/
 Generate synthetic tumor growth simulation using cellular automata.
 
 ```bash
-python visualize.py --input-dir /path/to/merged/data --steps 30 --tumor-points 2
+# Basic usage with default case
+python visualize.py
+
+# Process specific case
+python visualize.py --input-case BDMAP_A0001001
+
+# Custom parameters
+python visualize.py --input-case BDMAP_A0001000 --steps 50 --tumor-points 2
 ```
 
 #### Command Line Parameters
 
-##### Required Parameters
-- `--input-dir`: Directory containing merged image/ and label/ subdirectories
-
-##### Optional Parameters
+**Case Selection:**
+- `--input-case`: Case ID to process (default: BDMAP_A0001000)
+- `--dataset-root`: Path to AbdomenAtlasF dataset (default: ../subset_AbdomenAtlasF/subset_AbdomenAtlasF)
+- `--output-root`: Root output directory (default: ../output)
 
 **Tumor Growth Parameters:**
 - `--steps`: Total growth steps (default: 30)
-  - Range: 5-100 recommended
-  - Higher values = smoother transitions
-  - Example: `--steps 50`
-
 - `--tumor-points`: Initial tumor seed points (default: 1)
-  - Range: 1-10
-  - Multiple points create multi-focal tumors
-  - Example: `--tumor-points 3`
+- `--save-interval`: Save frequency for intermediate steps (default: steps/10)
 
 **Hardware Configuration:**
 - `--gpu`: GPU device ID (default: 0)
-  - Use -1 for CPU-only mode
-  - Example: `--gpu 1`
-
-**Output Control:**
-- `--save-interval`: Save frequency for intermediate steps (default: 0)
-  - When 0: automatically sets to steps/10
-  - Controls storage vs. detail balance
-  - Example: `--save-interval 5`
 
 #### Usage Examples
 
-**Basic Usage:**
+**Process different cases:**
 ```bash
-python visualize.py --input-dir /data/BDMAP_A0001000
+python visualize.py --input-case BDMAP_A0001000
+python visualize.py --input-case BDMAP_A0001001
+python visualize.py --input-case BDMAP_A0001002
 ```
 
-**High-Quality Growth Process:**
+**High-quality growth process:**
+```bash
+python visualize.py --input-case BDMAP_A0001000 --steps 50 --tumor-points 2 --save-interval 5
+```
+
+**Custom dataset location:**
 ```bash
 python visualize.py \
-    --input-dir /data/BDMAP_A0001000 \
-    --steps 50 \
-    --tumor-points 2 \
-    --save-interval 5
+    --input-case BDMAP_A0001000 \
+    --dataset-root /path/to/your/AbdomenAtlasF \
+    --output-root /path/to/output
 ```
-
-
 
 #### Output Structure
 ```
-output/growth_process/ct.nii/
+output/growth_process/{case_id}/
 ├── images/
 │   ├── tumor_step_000.nii.gz
 │   ├── tumor_step_005.nii.gz
@@ -183,7 +185,18 @@ output/growth_process/ct.nii/
 Generate 3D mesh-based visualizations from tumor growth steps.
 
 ```bash
-python visualization/3Dgif.py
+# Process default case
+cd visualization
+python 3Dgif.py
+
+# Process specific case
+python 3Dgif.py --input-case BDMAP_A0001001
+
+# Custom paths
+python 3Dgif.py \
+    --input-case BDMAP_A0001000 \
+    --growth-process-root ../../output/growth_process \
+    --output-root ../../output
 ```
 
 **Interactive Features:**
@@ -192,31 +205,17 @@ python visualization/3Dgif.py
 - Animation direction: Forward (growth) or reverse (shrinkage)
 - Multiple views: Generate different viewing angles
 
-**Viewing Angle Guide:**
-- **Horizontal angle (Azimuth)**: -180° to 180°
-  - 0° = front view
-  - 90° = right side view
-  - 180° = back view
-- **Vertical angle (Elevation)**: -90° to 90°
-  - 0° = horizontal view
-  - 90° = top view
-  - -90° = bottom view
-
-**Example Sessions:**
-```
-Select labels to display: 1,2,4,5
-Select animation order: 1 (Forward - growth)
-Horizontal angle: 45
-Vertical angle: 30
-View name: front_45deg
-```
+**Command Line Parameters:**
+- `--input-case`: Case ID to visualize (default: BDMAP_A0001000)
+- `--growth-process-root`: Path to growth process data (default: ../../output/growth_process)
+- `--output-root`: Root output directory (default: ../../output)
 
 **Output:**
 ```
-output/3Dgif/
-├── tumor_growth_front_45deg.gif
-├── tumor_growth_side_view.gif
-└── tumor_shrink_top_view.gif
+output/3Dgif/{case_id}/
+├── {case_id}_tumor_growth_front_45deg.gif
+├── {case_id}_tumor_growth_side_view.gif
+└── {case_id}_tumor_shrink_top_view.gif
 ```
 
 ### Step 4: Create 2D Slice Animations
@@ -224,8 +223,22 @@ output/3Dgif/
 Generate 2D slice-based animations showing tumor growth in different anatomical planes.
 
 ```bash
-python visualization/tumor_gross2D_gif.py
+# Process default case
+cd visualization
+python tumor_gross2D_gif.py
+
+# Process specific case
+python tumor_gross2D_gif.py --input-case BDMAP_A0001001
+
+# Custom duration
+python tumor_gross2D_gif.py --input-case BDMAP_A0001000 --duration 300
 ```
+
+**Command Line Parameters:**
+- `--input-case`: Case ID to visualize (default: BDMAP_A0001000)
+- `--growth-process-root`: Path to growth process data (default: ../../output/growth_process)
+- `--output-root`: Root output directory (default: ../../output)
+- `--duration`: Frame duration in milliseconds (default: 500)
 
 **Features:**
 - Automatic detection of largest tumor slice
@@ -235,12 +248,35 @@ python visualization/tumor_gross2D_gif.py
 
 **Output:**
 ```
-output/gifs/
-├── tumor_growth_largest_sagittal.gif
-├── tumor_growth_largest_coronal.gif
-└── tumor_growth_largest_axial.gif
+output/gifs/{case_id}/
+├── {case_id}_tumor_growth_largest_sagittal.gif
+├── {case_id}_tumor_growth_largest_coronal.gif
+└── {case_id}_tumor_growth_largest_axial.gif
 ```
 
+## Complete Example Workflow
+
+```bash
+# Step 1: Merge segmentations (run once per case)
+python merge_segmentations.py
+
+# Step 2: Generate tumor growth process
+python visualize.py --input-case BDMAP_A0001000 --steps 30
+
+# Step 3: Create 3D animations
+cd visualization
+python 3Dgif.py --input-case BDMAP_A0001000
+
+# Step 4: Create 2D animations  
+python tumor_gross2D_gif.py --input-case BDMAP_A0001000
+
+# Process another case
+cd ..
+python visualize.py --input-case BDMAP_A0001001
+cd visualization
+python 3Dgif.py --input-case BDMAP_A0001001
+python tumor_gross2D_gif.py --input-case BDMAP_A0001001
+```
 
 ## Visualization Customization
 
@@ -258,24 +294,24 @@ output/gifs/
 - Postcava: Dark Purple (80% opacity)
 
 **Recommended View Combinations:**
-- **Anterior view**: `--angle-h 0 --angle-v 0`
-- **Right lateral**: `--angle-h 90 --angle-v 0`
-- **Superior view**: `--angle-h 0 --angle-v 90`
-- **Oblique view**: `--angle-h 45 --angle-v 30`
-
-
-
+- **Anterior view**: Horizontal: 0°, Vertical: 0°
+- **Right lateral**: Horizontal: 90°, Vertical: 0°
+- **Superior view**: Horizontal: 0°, Vertical: 90°
+- **Oblique view**: Horizontal: 45°, Vertical: 30°
 
 ## Advanced Usage
 
 ### Batch Processing Multiple Cases
-Modify paths in `visualize.py` to process multiple AbdomenAtlasF cases:
-
-```python
-# In visualize.py, modify these paths:
-cases = ['BDMAP_A0001000', 'BDMAP_A0001001', ...]
-for case in cases:
-    process_case(case)
+```bash
+# Process multiple cases sequentially
+for case in BDMAP_A0001000 BDMAP_A0001001 BDMAP_A0001002; do
+    echo "Processing $case..."
+    python visualize.py --input-case $case
+    cd visualization
+    python 3Dgif.py --input-case $case
+    python tumor_gross2D_gif.py --input-case $case
+    cd ..
+done
 ```
 
 ### Custom Texture Generation
@@ -296,3 +332,20 @@ kernel_size = (3, 3, 3)      # Growth kernel size
 threshold = 10               # Growth threshold
 steps = 30                   # Growth steps
 ```
+
+## Troubleshooting
+
+**Path Issues:**
+- Ensure dataset follows the expected directory structure
+- Use absolute paths if relative paths cause issues
+- Check file permissions for output directories
+
+**Memory Issues:**
+- Reduce `--steps` parameter for large datasets
+- Use smaller `--save-interval` to reduce memory usage
+- Close other applications when processing large cases
+
+**GPU Issues:**
+- Use `--gpu -1` to force CPU mode
+- Check CUDA installation if GPU is not detected
+- Monitor GPU memory usage during processing
