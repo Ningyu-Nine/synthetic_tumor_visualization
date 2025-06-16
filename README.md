@@ -256,46 +256,6 @@ output/gifs/
 └── tumor_growth_largest_axial.gif
 ```
 
-## Parameter Recommendations
-
-### For Different Hardware Configurations
-
-**GPU Memory < 8GB:**
-```bash
---steps 20 --tumor-points 1 --save-interval 4
-```
-
-**GPU Memory 8-16GB:**
-```bash
---steps 30-50 --tumor-points 2-3 --save-interval 5
-```
-
-**GPU Memory > 16GB:**
-```bash
---steps 50-100 --tumor-points 3-5 --save-interval 3
-```
-
-**CPU Only:**
-```bash
---steps 10-20 --tumor-points 1 --gpu -1
-```
-
-### For Different Use Cases
-
-**Quick Preview:**
-```bash
---steps 10 --tumor-points 1 --save-interval 2
-```
-
-**Research Quality:**
-```bash
---steps 50 --tumor-points 2 --save-interval 3
-```
-
-**Publication Quality:**
-```bash
---steps 70-100 --tumor-points 3 --save-interval 2
-```
 
 ## Visualization Customization
 
@@ -318,43 +278,8 @@ output/gifs/
 - **Superior view**: `--angle-h 0 --angle-v 90`
 - **Oblique view**: `--angle-h 45 --angle-v 30`
 
-## Common Issues and Solutions
 
-### GPU Memory Issues
-```
-Error: CUDA out of memory
-Solution: Reduce --steps or use --gpu -1 for CPU mode
-```
 
-### Slow Processing
-```
-Issue: Processing takes too long
-Solution: Reduce --steps or increase --save-interval
-```
-
-### Missing Input Files
-```
-Error: FileNotFoundError
-Solution: Run merge_segmentations.py first
-```
-
-### Empty Visualization
-```
-Issue: No structures visible in 3D view
-Solution: Check label selection and ensure merged labels are correct
-```
-
-## Performance Optimization
-
-### Memory Management
-- Monitor GPU memory with `nvidia-smi`
-- Use appropriate batch sizes based on available memory
-- Clear CUDA cache between runs if needed
-
-### Speed Optimization
-- Use GPU acceleration when available
-- Adjust `--save-interval` to balance storage and processing time
-- Consider using fewer tumor points for faster processing
 
 ## Advanced Usage
 
@@ -386,45 +311,3 @@ kernel_size = (3, 3, 3)      # Growth kernel size
 threshold = 10               # Growth threshold
 steps = 30                   # Growth steps
 ```
-
-## Troubleshooting
-
-### Environment Issues
-1. **VTK Import Error**: Ensure VTK is installed with Python bindings
-2. **CUDA Issues**: Check PyTorch CUDA compatibility
-3. **Memory Issues**: Monitor system and GPU memory usage
-
-### Data Issues
-1. **File Format**: Ensure all files are in NIfTI format (.nii.gz)
-2. **Image Alignment**: Verify that CT and segmentation files are aligned
-3. **Label Values**: Check that merged labels use correct integer values
-
-### Visualization Issues
-1. **Empty Renders**: Verify label selection and data integrity
-2. **Incorrect Colors**: Check label mapping in `get_label_properties()`
-3. **Performance**: Adjust mesh quality and rendering parameters
-
-## Citation
-
-If you use this tool in your research, please cite:
-
-```bibtex
-@software{synthetic_tumor_visualization,
-  title={Synthetic Tumor Visualization Tool},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/your-repo/synthetic-tumor-visualization}
-}
-```
-
-## Contributing
-
-This is a research tool for synthetic tumor visualization. Contributions are welcome:
-
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
