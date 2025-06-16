@@ -3,6 +3,7 @@ import vtk
 import itk
 from PIL import Image
 import os
+import argparse
 from vtkmodules.vtkRenderingCore import (
     vtkRenderer, vtkRenderWindow, vtkRenderWindowInteractor,
     vtkPolyDataMapper, vtkActor, vtkCamera
@@ -11,19 +12,62 @@ from vtkmodules.vtkFiltersGeneral import vtkDiscreteMarchingCubes
 from vtkmodules.vtkFiltersCore import vtkWindowedSincPolyDataFilter
 from vtkmodules.util.numpy_support import vtk_to_numpy
 
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='Generate 3D tumor growth animations')
+    parser.add_argument('--input-case', type=str, 
+                      default='BDMAP_A0001000',
+                      help='Case ID to visualize (default: BDMAP_A0001000)')
+    parser.add_argument('--output-root', type=str,
+                      default='../../output',
+                      help='Root directory for outputs')
+    parser.add_argument('--growth-process-root', type=str,
+                      default='../../output/growth_process',
+                      help='Root directory containing growth process data')
+    return parser.parse_args()
+
+def get_paths(args):
+    """Generate standardized paths"""
+    # Input paths
+    labels_dir = os.path.join(args.growth_process_root, args.input_case, 'labels')
+    
+    # Output paths  
+    output_dir = os.path.join(args.output_root, '3Dgif', args.input_case)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    return {
+        'labels_dir': labels_dir,
+        'output_dir': output_dir,
+        'case_id': args.input_case
+    }
+
+def validate_paths(paths):
+    """Validate input paths exist"""
+    if not os.path.exists(paths['labels_dir']):
+        raise FileNotFoundError(f"Labels directory not found: {paths['labels_dir']}")
+    
+    # Check for label files
+    label_files = [f for f in os.listdir(paths['labels_dir']) if f.endswith('.nii.gz')]
+    if not label_files:
+        raise FileNotFoundError(f"No NII files found in: {paths['labels_dir']}")
+    
+    print(f"Input validation passed:")
+    print(f"  Labels directory: {paths['labels_dir']}")
+    print(f"  Found {len(label_files)} label files")
+
 def get_label_properties():
     """Get label properties: colors and opacities"""
     return {
-        1: {"name": "PDAC_lesion", "desc": "Pancreatic Ductal Adenocarcinoma", "color": (1.0, 0.0, 0.0), "opacity": 1.0},    # Red
-        2: {"name": "Veins", "desc": "Veins", "color": (0.0, 0.0, 1.0), "opacity": 0.8},                                      # Blue
-        3: {"name": "Arteries", "desc": "Arteries", "color": (1.0, 0.4, 0.4), "opacity": 0.8},                                # Pink
-        4: {"name": "pancreas", "desc": "Pancreatic Parenchyma", "color": (0.2, 0.8, 0.2), "opacity": 0.2},                   # Green, 更透明
-        5: {"name": "pancreatic_duct", "desc": "Pancreatic Duct", "color": (1.0, 1.0, 0.0), "opacity": 0.9},                  # Yellow, 更不透明
-        6: {"name": "bile_duct", "desc": "Bile Duct", "color": (0.0, 1.0, 1.0), "opacity": 0.8},                              # Cyan
-        7: {"name": "pancreatic_cyst", "desc": "Pancreatic Cyst", "color": (0.8, 0.6, 1.0), "opacity": 0.7},                  # Light Purple
-        8: {"name": "pancreatic_pnet", "desc": "Pancreatic Neuroendocrine Tumor", "color": (1.0, 0.6, 0.2), "opacity": 0.9},  # Orange
-        9: {"name": "postcava", "desc": "Postcava", "color": (0.4, 0.0, 0.8), "opacity": 0.8},                                 # Dark Purple
-        10: {"name": "superior_mesenteric_artery", "desc": "Superior Mesenteric Artery", "color": (1.0, 0.8, 0.0), "opacity": 1.0}  # Gold
+        1: {"name": "PDAC_lesion", "desc": "Pancreatic Ductal Adenocarcinoma", "color": (1.0, 0.0, 0.0), "opacity": 1.0},
+        2: {"name": "Veins", "desc": "Veins", "color": (0.0, 0.0, 1.0), "opacity": 0.8},
+        3: {"name": "Arteries", "desc": "Arteries", "color": (1.0, 0.4, 0.4), "opacity": 0.8},
+        4: {"name": "pancreas", "desc": "Pancreatic Parenchyma", "color": (0.2, 0.8, 0.2), "opacity": 0.2},
+        5: {"name": "pancreatic_duct", "desc": "Pancreatic Duct", "color": (1.0, 1.0, 0.0), "opacity": 0.9},
+        6: {"name": "bile_duct", "desc": "Bile Duct", "color": (0.0, 1.0, 1.0), "opacity": 0.8},
+        7: {"name": "pancreatic_cyst", "desc": "Pancreatic Cyst", "color": (0.8, 0.6, 1.0), "opacity": 0.7},
+        8: {"name": "pancreatic_pnet", "desc": "Pancreatic Neuroendocrine Tumor", "color": (1.0, 0.6, 0.2), "opacity": 0.9},
+        9: {"name": "postcava", "desc": "Postcava", "color": (0.4, 0.0, 0.8), "opacity": 0.8},
+        10: {"name": "superior_mesenteric_artery", "desc": "Superior Mesenteric Artery", "color": (1.0, 0.8, 0.0), "opacity": 1.0}
     }
 
 def show_available_labels(unique_labels):
@@ -244,11 +288,11 @@ def capture_nii_3d_view(nii_path, angle_h, angle_v, selected_labels=None, window
     
     return numpy_array, selected_labels
 
-def create_growth_animation(nii_base_dir, output_path, angle_h=0, angle_v=0, duration=500, reverse_order=False):
+def create_growth_animation(labels_dir, output_path, angle_h=0, angle_v=0, duration=500, reverse_order=False):
     """Create tumor growth animation directly from NII files
     
     Args:
-        nii_base_dir: NII files directory
+        labels_dir: Directory containing label NII files
         output_path: Output GIF file path
         angle_h: Horizontal view angle
         angle_v: Vertical view angle
@@ -256,7 +300,7 @@ def create_growth_animation(nii_base_dir, output_path, angle_h=0, angle_v=0, dur
         reverse_order: Whether to reverse the order (large to small)
     """
     # Find all nii.gz files
-    nii_files = [f for f in os.listdir(nii_base_dir) if f.endswith('.nii.gz')]
+    nii_files = [f for f in os.listdir(labels_dir) if f.endswith('.nii.gz')]
     
     if not nii_files:
         print("No NII files found!")
@@ -294,10 +338,10 @@ def create_growth_animation(nii_base_dir, output_path, angle_h=0, angle_v=0, dur
     print(f"Processing {len(sorted_files)} files, sorted by growth step from {order_desc}")
     
     frames = []
-    selected_labels = None  # Will prompt user on first run
+    selected_labels = None
     
     for nii_file in sorted_files:
-        file_path = os.path.join(nii_base_dir, nii_file)
+        file_path = os.path.join(labels_dir, nii_file)
         print(f"Processing {nii_file}...")
         
         image_array, selected_labels = capture_nii_3d_view(
@@ -366,12 +410,15 @@ def get_user_view():
     return angle_h, angle_v, view_name
 
 def main():
-    # Update base path for NII files
-    nii_base_dir = "/opt/data/private/wny/Synthetic_Tumor_visualization/output/growth_process/labels"
-    output_dir = "/opt/data/private/wny/Synthetic_Tumor_visualization/output/3Dgif"
-    os.makedirs(output_dir, exist_ok=True)
+    args = parse_args()
+    
+    # Get and validate paths
+    paths = get_paths(args)
+    validate_paths(paths)
 
-    print(f"\nReading tumor growth steps from directory: {nii_base_dir}")
+    print(f"\nGenerating 3D animations for case: {args.input_case}")
+    print(f"Reading tumor growth steps from: {paths['labels_dir']}")
+    print(f"Output directory: {paths['output_dir']}")
     
     # Get user preference for order
     reverse_order = get_user_order_preference()
@@ -386,15 +433,15 @@ def main():
         
         # Adjust output filename based on order
         if reverse_order:
-            output_filename = f"tumor_shrink_{view_name}.gif"
+            output_filename = f"{args.input_case}_tumor_shrink_{view_name}.gif"
         else:
-            output_filename = f"tumor_growth_{view_name}.gif"
+            output_filename = f"{args.input_case}_tumor_growth_{view_name}.gif"
             
-        output_path = os.path.join(output_dir, output_filename)
+        output_path = os.path.join(paths['output_dir'], output_filename)
         
         print(f"\nGenerating animation for {view_name} view...")
         create_growth_animation(
-            nii_base_dir, 
+            paths['labels_dir'], 
             output_path, 
             angle_h=angle_h, 
             angle_v=angle_v,
@@ -407,7 +454,8 @@ def main():
         if choice != 'y':
             break
     
-    print("\nAll view animations completed!")
+    print(f"\nAll 3D animations for {args.input_case} completed!")
+    print(f"Output directory: {paths['output_dir']}")
 
 if __name__ == "__main__":
     main()
