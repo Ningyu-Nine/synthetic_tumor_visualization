@@ -161,22 +161,7 @@ python visualize.py \
     --save-interval 5
 ```
 
-**CPU-Only Mode:**
-```bash
-python visualize.py \
-    --input-dir /data/BDMAP_A0001000 \
-    --steps 20 \
-    --gpu -1
-```
 
-**Multi-focal Tumor:**
-```bash
-python visualize.py \
-    --input-dir /data/BDMAP_A0001000 \
-    --steps 40 \
-    --tumor-points 5 \
-    --save-interval 3
-```
 
 #### Output Structure
 ```
